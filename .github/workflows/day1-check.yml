@@ -1,3 +1,10 @@
+name: Day1 Check
+on: [push]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
 - name: Check required files
   run: |
     for f in README.md docs/analysis.md docs/requirements.md docs/tz.md docs/stakeholders.md; do
