@@ -1,16 +1,16 @@
-name: Day1 Check
-on:
-  push:
-  pull_request:
+name: Day 1 Check
+
+on: [push, pull_request]
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Check required files
         run: |
+          echo "=== Checking files ==="
           for f in README.md docs/analysis.md docs/requirements.md docs/tz.md docs/stakeholders.md; do
             if [ -f "$f" ]; then
               echo "PASS: $f found"
@@ -24,7 +24,7 @@ jobs:
               exit 1
             fi
           done
-
+          
       - name: Check User Stories
         run: |
           COUNT=$(grep -c "Как " docs/requirements.md || echo 0)
@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
           echo "PASS: User Stories OK"
-
+          
       - name: Check NFR
         run: |
           COUNT=$(grep -c "NFR-" docs/requirements.md || echo 0)
@@ -44,7 +44,7 @@ jobs:
             exit 1
           fi
           echo "PASS: NFR OK"
-
+          
       - name: Check TZ sections
         run: |
           for section in "Назначение" "предметной области" "функци" "качеств" "интерфей" "данны" "стек" "Ограничен"; do
@@ -54,7 +54,7 @@ jobs:
             fi
           done
           echo "PASS: All TZ sections found"
-
+          
       - name: Check entities
         run: |
           COUNT=$(grep -c "|" docs/analysis.md || echo 0)
@@ -63,6 +63,6 @@ jobs:
             exit 1
           fi
           echo "PASS: Entities OK"
-
+          
       - name: All checks passed
         run: echo "ALL CHECKS PASSED"
