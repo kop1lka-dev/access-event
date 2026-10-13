@@ -14,8 +14,8 @@ run: |
         fi
       done
 
-   name: Check User Stories
-   run: |
+name: Check User Stories
+run: |
       COUNT=$(grep -c "Как " docs/requirements.md || echo 0)
       echo "User Stories found: $COUNT"
       if [ "$COUNT" -lt 10 ]; then
@@ -24,8 +24,8 @@ run: |
       fi
       echo "PASS: User Stories OK"
 
-   name: Check NFR
-   run: |
+name: Check NFR
+run: |
       COUNT=$(grep -c "NFR-" docs/requirements.md || echo 0)
       echo "NFR found: $COUNT"
       if [ "$COUNT" -lt 5 ]; then
@@ -34,8 +34,8 @@ run: |
       fi
       echo "PASS: NFR OK"
 
-   name: Check TZ sections
-   run: |
+name: Check TZ sections
+run: |
       for section in "Назначение" "предметной области" "функци" "качеств" "интерфей" "данны" "стек" "Ограничен"; do
         if ! grep -qi "$section" docs/tz.md; then
           echo "FAIL: section '$section' not found in tz.md"
