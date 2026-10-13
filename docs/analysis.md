@@ -15,6 +15,11 @@ AccessEvent — платформа для организации меропри�
 | Notification | id, event_id, type, message, color | Уведомление |
 | Review | id, event_id, participant_id, rating, text | Отзыв |
 | Category | id, name, description | Категория события |
+| Venue | id, name, address, capacity, has_ramp, has_loop | Площадка проведения |
+| AccessibilityOption | id, name, code, description | Опция доступности (пандус, сурдоперевод и т.д.) |
+| Message | id, event_id, sender_id, text, created_at | Сообщение в чате мероприятия |
+| EventAccessibility | id, event_id, option_id | Связь мероприятия и опции доступности |
+| Subscription | id, participant_id, category_id, created_at | Подписка участника на категорию |
 
 ## 3. Бизнес-процессы
 
