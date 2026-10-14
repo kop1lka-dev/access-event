@@ -20,4 +20,6 @@ jobs:
           test -f routes/events.py
           test -f routes/registrations.py
           test -f utils/auth_helpers.py
-      - run: echo "Structure OK"
+      - name: Syntax check
+        run: python -m py_compile app.py config.py models.py
+      - run: echo "PASS: Day3 Backend Check completed"
