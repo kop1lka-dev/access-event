@@ -11,4 +11,13 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - run: echo "Dependencies installed"
+      - name: Check structure
+        run: |
+          test -f app.py
+          test -f config.py
+          test -f models.py
+          test -f routes/auth.py
+          test -f routes/events.py
+          test -f routes/registrations.py
+          test -f utils/auth_helpers.py
+      - run: echo "Structure OK"
