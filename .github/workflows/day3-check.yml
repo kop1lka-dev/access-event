@@ -23,4 +23,3 @@ jobs:
       - name: Syntax check
         run: python -m py_compile app.py config.py models.py
       - run: echo "PASS: Day3 Backend Check completed"
-      
