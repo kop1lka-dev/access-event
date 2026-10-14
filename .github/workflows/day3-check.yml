@@ -12,14 +12,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Check structure
-        run: |
-          test -f app.py
-          test -f config.py
-          test -f models.py
-          test -f routes/auth.py
-          test -f routes/events.py
-          test -f routes/registrations.py
-          test -f utils/auth_helpers.py
+        run: test -f app.py && test -f config.py && test -f models.py && test -f routes/auth.py && test -f routes/events.py && test -f routes/registrations.py && test -f utils/auth_helpers.py
       - name: Syntax check
         run: python -m py_compile app.py config.py models.py
-      - run: echo "PASS: Day3 Backend Check completed"
+      - name: Done
+        run: echo "PASS: Day3 Backend Check completed"
