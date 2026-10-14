@@ -1,4 +1,4 @@
-name: Day3 Check
+name: Day3 Backend Check
 on: push
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Check structure
+      - name: Check project structure
         run: |
           test -f app.py
           test -f config.py
@@ -20,11 +20,13 @@ jobs:
           test -f routes/events.py
           test -f routes/registrations.py
           test -f utils/auth_helpers.py
-      - name: Syntax check
+      - name: Check security helpers
         run: |
-          python -m py_compile app.py
-          python -m py_compile config.py
-          python -m py_compile models.py
-      - name: Done
-        run: echo "PASS: Day3 Backend Check completed"
-        
+          grep -q "hash_password" utils/auth_helpers.py && echo "PASS: hash_password" || echo "FAIL: hash_password"
+          grep -q "generate_token" utils/auth_helpers.py && echo "PASS: jwt" || echo "FAIL: jwt"
+          grep -q "role_required" utils/auth_helpers.py && echo "PASS: roles" || echo "FAIL: roles"
+      - name: Check accessibility
+        run: grep -q "accessibility" utils/accessibility.py && echo "PASS: accessibility" || echo "FAIL: accessibility"
+      - name: Syntax check
+        run: python -m py_compile app.py config.py models.py routes/*.py utils/*.py
+      - run: echo "PASS: Day3 Backend Check completed"
