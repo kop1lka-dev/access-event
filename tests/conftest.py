@@ -1,8 +1,15 @@
+import sys
+from pathlib import Path
+
+# Добавляем корень проекта в sys.path, чтобы `from app import app` работал
+# и локально, и на GitHub Actions (там pytest не видит корень автоматически).
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import os
 
 import pytest
 
-# ВАЖНО: эта строка должна быть ДО импорта app.
+# ВАЖНО: TESTING должен быть выставлен ДО импорта app.
 # config.py читает TESTING в момент создания app и выбирает SQLite вместо PostgreSQL.
 os.environ.setdefault("TESTING", "1")
 
