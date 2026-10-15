@@ -2,7 +2,8 @@ name: Build and Publish Docker Image
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   packages: write
@@ -35,4 +36,4 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/accessevent:${{ github.sha }}
 
       - name: Summary
-        run: echo "PASS: Docker image built and published to GHCR"
+        run: echo "Docker image built and published to GHCR"
