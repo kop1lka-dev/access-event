@@ -1,0 +1,1357 @@
+/* ================================================================
+   AccessEvent — Clean Blue Minimal + 3D Hover
+   Все интерактивные элементы при наведении дают 3D-отклик.
+   ================================================================ */
+
+/* ============================================================
+   ПЕРЕМЕННЫЕ
+   ============================================================ */
+:root {
+    --bg:          #0a1020;
+    --bg-2:        #0f1830;
+    --bg-3:        #141f3d;
+    --bg-4:        #1a2749;
+
+    --border:      #1e2d54;
+    --border-2:    #2a3f6d;
+    --border-3:    #3d5691;
+
+    --blue:        #4a8eff;
+    --blue-hi:     #6ba7ff;
+    --blue-lo:     #2d6fd6;
+    --blue-dim:    rgba(74, 142, 255, 0.12);
+    --blue-glow:   rgba(74, 142, 255, 0.35);
+
+    --text:        #e6ecf7;
+    --text-2:      #94a3c4;
+    --text-3:      #5c6a8f;
+
+    --green:       #3fb950;
+    --green-dim:   rgba(63, 185, 80, 0.12);
+    --amber:       #d29922;
+    --amber-dim:   rgba(210, 153, 34, 0.12);
+    --red:         #f85149;
+    --red-dim:     rgba(248, 81, 73, 0.12);
+
+    --r-sm:        8px;
+    --r-md:        12px;
+    --r-lg:        16px;
+
+    /* Единый тайминг 1.2 сек */
+    --t:           1.2s;
+
+    /* 3D */
+    --persp:       1200px;   /* глубина перспективы */
+
+    /* Мягчайшие кривые */
+    --ease-silk:   cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-glass:  cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-soft:   cubic-bezier(0.4, 0, 0.2, 1);
+
+    --shadow-sm:   0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-md:   0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-lg:   0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter',
+                 Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    animation: body-in 1.2s var(--ease-silk) both;
+    perspective: var(--persp);
+}
+
+@keyframes body-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 0%,
+            rgba(74, 142, 255, 0.08) 0%,
+            transparent 45%),
+        radial-gradient(circle at 100% 100%,
+            rgba(74, 142, 255, 0.05) 0%,
+            transparent 50%);
+    z-index: -1;
+    pointer-events: none;
+    animation: bg-breathe 20s var(--ease-soft) infinite;
+}
+
+@keyframes bg-breathe {
+    0%, 100% { opacity: 0.9; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.05); }
+}
+
+button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+/* ============================================================
+   СКРОЛЛБАР
+   ============================================================ */
+::-webkit-scrollbar           { width: 10px; }
+::-webkit-scrollbar-track     { background: var(--bg); }
+::-webkit-scrollbar-thumb     {
+    background: var(--border-2);
+    border-radius: 5px;
+    border: 2px solid var(--bg);
+    transition: background var(--t) var(--ease-silk);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--border-3); }
+
+::selection {
+    background: var(--blue-dim);
+    color: var(--text);
+}
+
+/* ============================================================
+   ШАПКА
+   ============================================================ */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    background: rgba(10, 16, 32, 0.82);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid var(--border);
+    animation: header-in var(--t) var(--ease-silk) both;
+}
+
+@keyframes header-in {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+nav {
+    display: flex;
+    gap: 0.35rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: center;
+    perspective: var(--persp);
+}
+
+.nav-link {
+    position: relative;
+    color: var(--text-2);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.92rem;
+    padding: 0.65rem 1.1rem;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    isolation: isolate;
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateZ(0);
+    transition:
+        color       var(--t) var(--ease-silk),
+        background  var(--t) var(--ease-silk),
+        transform   var(--t) var(--ease-silk),
+        box-shadow  var(--t) var(--ease-silk);
+}
+
+.nav-link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        160px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.14),
+        transparent 60%
+    );
+    opacity: 0;
+    transition: opacity var(--t) var(--ease-silk);
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.nav-link:hover {
+    color: var(--blue);
+    background: var(--bg-2);
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-3px)
+               translateZ(20px)
+               scale(1.06);
+    box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.35),
+        0 0 24px rgba(74, 142, 255, 0.15);
+}
+
+.nav-link:hover::before {
+    opacity: 1;
+}
+
+.nav-link:active {
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(0)
+               translateZ(0)
+               scale(0.97);
+    transition-duration: var(--t);
+}
+
+.nav-link:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+}
+
+/* ============================================================
+   ЗАГОЛОВКИ
+   ============================================================ */
+h1 {
+    font-size: clamp(1.7rem, 3vw, 2.15rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--text);
+    margin-bottom: 1.1rem;
+}
+
+h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 0.55rem;
+}
+
+/* ============================================================
+   HERO — тоже 3D при hover
+   ============================================================ */
+.hero {
+    position: relative;
+    padding: 4.5rem 2rem;
+    background: linear-gradient(135deg,
+        var(--bg-2) 0%,
+        var(--bg-3) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    text-align: center;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    isolation: isolate;
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateZ(0);
+    animation: hero-in var(--t) var(--ease-silk) both;
+    transition:
+        border-color var(--t) var(--ease-silk),
+        box-shadow   var(--t) var(--ease-silk),
+        transform    var(--t) var(--ease-silk);
+}
+
+@keyframes hero-in {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+        filter: blur(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        600px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.1),
+        transparent 50%
+    );
+    pointer-events: none;
+    transition: opacity var(--t) var(--ease-silk);
+    z-index: -1;
+}
+
+.hero:hover {
+    border-color: var(--border-2);
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-4px)
+               translateZ(30px)
+               scale(1.015);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.55),
+        0 0 60px rgba(74, 142, 255, 0.12);
+}
+
+.hero h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    margin-bottom: 1.2rem;
+    animation: text-in var(--t) var(--ease-silk) 0.3s both;
+}
+
+.hero p {
+    color: var(--text-2);
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    line-height: 1.65;
+    animation: text-in var(--t) var(--ease-silk) 0.45s both;
+}
+
+.hero .btn {
+    animation: text-in var(--t) var(--ease-silk) 0.6s both;
+}
+
+@keyframes text-in {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+        filter: blur(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* ============================================================
+   КНОПКИ — 3D-наклон + рост + тень
+   ============================================================ */
+.btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    padding: 0.9rem 1.8rem;
+    min-height: 48px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+
+    color: var(--text);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+
+    background: var(--bg-2);
+    border: 1px solid var(--border-2);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    isolation: isolate;
+
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(0)
+               translateZ(0)
+               scale(1);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 2px 0 var(--bg),
+        0 6px 16px rgba(0, 0, 0, 0.35);
+
+    transition:
+        transform       var(--t) var(--ease-silk),
+        box-shadow      var(--t) var(--ease-silk),
+        border-color    var(--t) var(--ease-silk),
+        color           var(--t) var(--ease-silk),
+        background      var(--t) var(--ease-silk),
+        letter-spacing  var(--t) var(--ease-silk);
+    will-change: transform, box-shadow;
+}
+
+.btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        240px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.2),
+        transparent 60%
+    );
+    opacity: 0;
+    transition: opacity var(--t) var(--ease-silk);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.btn:hover {
+    background: var(--bg-3);
+    border-color: var(--blue);
+    color: var(--blue-hi);
+    letter-spacing: 0.025em;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-6px)
+               translateZ(35px)
+               scale(1.075);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 10px 0 var(--bg),
+        0 30px 50px rgba(0, 0, 0, 0.5),
+        0 0 50px rgba(74, 142, 255, 0.3);
+}
+
+.btn:hover::before {
+    opacity: 1;
+}
+
+.btn:active {
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(1px)
+               translateZ(0)
+               scale(0.98);
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.4),
+        0 0 0 var(--bg),
+        0 1px 3px rgba(0, 0, 0, 0.35);
+    transition-duration: var(--t);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+}
+
+/* --- Primary --- */
+.btn-primary {
+    background: linear-gradient(180deg, var(--blue) 0%, var(--blue-lo) 100%);
+    border-color: var(--blue);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem 2.1rem;
+    min-height: 52px;
+    font-size: 1rem;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 3px 0 #1a4e9a,
+        0 8px 20px rgba(74, 142, 255, 0.3),
+        0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(180deg, var(--blue-hi) 0%, var(--blue) 100%);
+    border-color: var(--blue-hi);
+    color: #ffffff;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-6px)
+               translateZ(40px)
+               scale(1.085);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 11px 0 #1a4e9a,
+        0 34px 60px rgba(74, 142, 255, 0.5),
+        0 24px 50px rgba(0, 0, 0, 0.5);
+}
+
+.btn-primary:active {
+    background: linear-gradient(180deg, var(--blue-lo) 0%, var(--blue) 100%);
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(1px)
+               translateZ(0)
+               scale(0.98);
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.3),
+        0 0 0 #1a4e9a,
+        0 2px 4px rgba(0, 0, 0, 0.4);
+    transition-duration: var(--t);
+}
+
+/* ============================================================
+   ФИЛЬТРЫ
+   ============================================================ */
+.filters {
+    display: flex;
+    gap: 0.7rem;
+    margin: 1.4rem 0 1.8rem;
+    flex-wrap: wrap;
+    perspective: var(--persp);
+}
+
+.filters .btn {
+    padding: 0.8rem 1.6rem;
+    min-height: 46px;
+    font-size: 0.92rem;
+}
+
+.filters .btn:nth-child(1) {
+    background: var(--blue-dim);
+    border-color: rgba(74, 142, 255, 0.35);
+    color: var(--blue);
+}
+
+.filters .btn:nth-child(1):hover {
+    background: rgba(74, 142, 255, 0.18);
+    border-color: var(--blue);
+    color: var(--blue-hi);
+}
+
+.filters .btn:nth-child(2) {
+    background: var(--green-dim);
+    border-color: rgba(63, 185, 80, 0.35);
+    color: var(--green);
+}
+
+.filters .btn:nth-child(2):hover {
+    background: rgba(63, 185, 80, 0.18);
+    border-color: var(--green);
+}
+
+/* ============================================================
+   КАРТОЧКИ ФИЧ — 3D-наклон
+   ============================================================ */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.1rem;
+    margin-top: 1.8rem;
+    perspective: var(--persp);
+}
+
+.feature-card {
+    position: relative;
+    padding: 1.8rem 1.5rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    isolation: isolate;
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(0)
+               translateZ(0)
+               scale(1);
+    transition:
+        transform       var(--t) var(--ease-silk),
+        border-color    var(--t) var(--ease-silk),
+        background      var(--t) var(--ease-silk),
+        box-shadow      var(--t) var(--ease-silk);
+    animation: card-in var(--t) var(--ease-silk) both;
+    will-change: transform;
+}
+
+.feature-card:nth-child(1) { animation-delay: 0.15s; }
+.feature-card:nth-child(2) { animation-delay: 0.3s; }
+.feature-card:nth-child(3) { animation-delay: 0.45s; }
+
+@keyframes card-in {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.94);
+        filter: blur(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+.feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        380px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.14),
+        transparent 50%
+    );
+    opacity: 0;
+    transition: opacity var(--t) var(--ease-silk);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.feature-card::after {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: 0;
+    width: 2px;
+    height: 60%;
+    background: var(--blue);
+    border-radius: 0 2px 2px 0;
+    opacity: 0;
+    transform: scaleY(0.4);
+    transform-origin: center;
+    transition:
+        opacity     var(--t) var(--ease-silk),
+        transform   var(--t) var(--ease-silk),
+        box-shadow  var(--t) var(--ease-silk);
+    box-shadow: 0 0 12px var(--blue);
+}
+
+.feature-card:hover {
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-10px)
+               translateZ(30px)
+               scale(1.035);
+    border-color: var(--border-2);
+    background: var(--bg-3);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.55),
+        0 0 50px rgba(74, 142, 255, 0.15);
+}
+
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card:hover::after {
+    opacity: 1;
+    transform: scaleY(1);
+    box-shadow: 0 0 20px var(--blue);
+}
+
+.feature-card h2 {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+    transition: color var(--t) var(--ease-silk);
+}
+
+.feature-card:hover h2 {
+    color: var(--blue);
+}
+
+.feature-card p {
+    color: var(--text-2);
+    font-size: 0.93rem;
+    line-height: 1.65;
+}
+
+/* ============================================================
+   КАРТОЧКИ МЕРОПРИЯТИЙ — 3D-наклон
+   ============================================================ */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+    perspective: var(--persp);
+}
+
+.event-card {
+    position: relative;
+    padding: 1.7rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    isolation: isolate;
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(0)
+               translateZ(0)
+               scale(1);
+    transition:
+        transform       var(--t) var(--ease-silk),
+        border-color    var(--t) var(--ease-silk),
+        background      var(--t) var(--ease-silk),
+        box-shadow      var(--t) var(--ease-silk);
+    animation: card-in var(--t) var(--ease-silk) both;
+    will-change: transform;
+}
+
+.event-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        420px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.14),
+        transparent 50%
+    );
+    opacity: 0;
+    transition: opacity var(--t) var(--ease-silk);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.event-card:hover {
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-10px)
+               translateZ(30px)
+               scale(1.03);
+    border-color: var(--border-2);
+    background: var(--bg-3);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.55),
+        0 0 50px rgba(74, 142, 255, 0.15);
+}
+
+.event-card:hover::before { opacity: 1; }
+
+.event-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: color var(--t) var(--ease-silk);
+}
+
+.event-card:hover h2 {
+    color: var(--blue);
+}
+
+.event-date {
+    color: var(--text-3);
+    font-size: 0.85rem;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    margin-bottom: 0.7rem;
+    transition: color var(--t) var(--ease-silk);
+}
+
+.event-card:hover .event-date {
+    color: var(--text-2);
+}
+
+.event-card > p {
+    color: var(--text-2);
+    font-size: 0.93rem;
+    line-height: 1.65;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1rem 0;
+}
+
+/* ============================================================
+   БЕЙДЖИ — лёгкий 3D
+   ============================================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: 1px solid;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(0)
+               scale(1);
+    transform-style: preserve-3d;
+    transition:
+        transform  var(--t) var(--ease-silk),
+        box-shadow var(--t) var(--ease-silk),
+        filter     var(--t) var(--ease-silk);
+}
+
+.badge:hover {
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-4px)
+               translateZ(15px)
+               scale(1.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    filter: brightness(1.15);
+}
+
+.badge-inclusive {
+    background: var(--green-dim);
+    color: var(--green);
+    border-color: rgba(63, 185, 80, 0.35);
+}
+
+.badge-slg {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border-color: rgba(74, 142, 255, 0.35);
+}
+
+.badge-visual {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border-color: rgba(210, 153, 34, 0.35);
+}
+
+.badge-pending {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border-color: rgba(210, 153, 34, 0.35);
+}
+
+.badge-confirmed {
+    background: var(--green-dim);
+    color: var(--green);
+    border-color: rgba(63, 185, 80, 0.35);
+}
+
+.badge-cancelled {
+    background: var(--red-dim);
+    color: var(--red);
+    border-color: rgba(248, 81, 73, 0.35);
+}
+
+.badge-role {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border-color: rgba(74, 142, 255, 0.35);
+}
+
+.event-status {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    transition: border-color var(--t) var(--ease-silk);
+}
+
+.event-card:hover .event-status {
+    border-top-color: var(--border-2);
+}
+
+/* ============================================================
+   ФОРМЫ
+   ============================================================ */
+.form-container {
+    max-width: 460px;
+    margin: 2rem auto;
+    padding: 2.3rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    perspective: var(--persp);
+    animation: hero-in var(--t) var(--ease-silk) both;
+    transition:
+        border-color var(--t) var(--ease-silk),
+        box-shadow   var(--t) var(--ease-silk);
+}
+
+.form-container:focus-within {
+    border-color: var(--border-2);
+    box-shadow: var(--shadow-md);
+}
+
+.form-container h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.6rem;
+}
+
+.form-group {
+    margin-bottom: 1.3rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-size: 0.88rem;
+    transition: color var(--t) var(--ease-silk);
+}
+
+.form-group:focus-within label {
+    color: var(--blue);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border-2);
+    border-radius: var(--r-sm);
+    font-size: 0.95rem;
+    color: var(--text);
+    transition:
+        border-color var(--t) var(--ease-silk),
+        background   var(--t) var(--ease-silk),
+        box-shadow   var(--t) var(--ease-silk),
+        transform    var(--t) var(--ease-silk);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-3);
+    transition: color var(--t) var(--ease-silk);
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    border-color: var(--border-3);
+    background: var(--bg-2);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: var(--bg-2);
+    box-shadow: 0 0 0 4px var(--blue-dim);
+    transform: translateY(-2px);
+}
+
+.form-group input:focus::placeholder,
+.form-group textarea:focus::placeholder {
+    color: var(--text-2);
+}
+
+.form-group select option {
+    background: var(--bg-2);
+    color: var(--text);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-3);
+    transition: color var(--t) var(--ease-silk);
+}
+
+.form-group:focus-within small {
+    color: var(--text-2);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--blue);
+    cursor: pointer;
+    transition: transform var(--t) var(--ease-silk);
+}
+
+.checkbox-group input[type="checkbox"]:hover {
+    transform: scale(1.15);
+}
+
+.checkbox-group input[type="checkbox"]:active {
+    transform: scale(1);
+    transition-duration: var(--t);
+}
+
+.checkbox-group label {
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+    font-size: 0.92rem;
+}
+
+.form-container > p {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-2);
+    font-size: 0.88rem;
+}
+
+.form-container > p a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: color var(--t) var(--ease-silk);
+}
+
+.form-container > p a::after {
+    content: "";
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--blue);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--t) var(--ease-silk);
+}
+
+.form-container > p a:hover {
+    color: var(--blue-hi);
+}
+
+.form-container > p a:hover::after {
+    transform: scaleX(1);
+}
+
+.form-container .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+/* ============================================================
+   УВЕДОМЛЕНИЯ
+   ============================================================ */
+.notifications {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-width: 360px;
+    pointer-events: none;
+    perspective: var(--persp);
+}
+
+.notification {
+    position: relative;
+    padding: 0.9rem 1.25rem;
+    border-radius: var(--r-md);
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg-2);
+    border: 1px solid var(--border-2);
+    box-shadow: var(--shadow-md);
+    animation: notif-in var(--t) var(--ease-glass);
+    pointer-events: auto;
+    transform-style: preserve-3d;
+    transition:
+        opacity   var(--t) var(--ease-silk),
+        transform var(--t) var(--ease-silk),
+        filter    var(--t) var(--ease-silk);
+}
+
+.notification-success {
+    border-left: 3px solid var(--green);
+    background: linear-gradient(90deg,
+        var(--green-dim) 0%,
+        var(--bg-2) 45%);
+}
+
+.notification-error {
+    border-left: 3px solid var(--red);
+    background: linear-gradient(90deg,
+        var(--red-dim) 0%,
+        var(--bg-2) 45%);
+}
+
+.notification-info {
+    border-left: 3px solid var(--blue);
+    background: linear-gradient(90deg,
+        var(--blue-dim) 0%,
+        var(--bg-2) 45%);
+}
+
+.notification-out {
+    opacity: 0;
+    transform: translateX(60px) scale(0.9);
+    filter: blur(6px);
+}
+
+@keyframes notif-in {
+    from {
+        opacity: 0;
+        transform: translateX(60px) scale(0.9);
+        filter: blur(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* ============================================================
+   ПРОФИЛЬ
+   ============================================================ */
+.profile-container {
+    animation: hero-in var(--t) var(--ease-silk) both;
+    perspective: var(--persp);
+}
+
+.profile-card {
+    position: relative;
+    padding: 1.8rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 1.3rem;
+    overflow: hidden;
+    isolation: isolate;
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateZ(0);
+    transition:
+        border-color var(--t) var(--ease-silk),
+        background   var(--t) var(--ease-silk),
+        transform    var(--t) var(--ease-silk),
+        box-shadow   var(--t) var(--ease-silk);
+}
+
+.profile-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        400px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.1),
+        transparent 50%
+    );
+    opacity: 0;
+    transition: opacity var(--t) var(--ease-silk);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.profile-card:hover {
+    border-color: var(--border-2);
+    background: var(--bg-3);
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateY(-6px)
+               translateZ(20px)
+               scale(1.02);
+    box-shadow:
+        0 24px 50px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(74, 142, 255, 0.12);
+}
+
+.profile-card:hover::before { opacity: 1; }
+
+.profile-card p {
+    margin-bottom: 0.6rem;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.profile-card strong {
+    color: var(--text-2);
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.registrations-list {
+    list-style: none;
+    margin-top: 0.9rem;
+    perspective: var(--persp);
+}
+
+.registrations-list li {
+    position: relative;
+    padding: 0.95rem 1.25rem;
+    margin-bottom: 0.6rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-size: 0.93rem;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    overflow: hidden;
+    isolation: isolate;
+    transform-style: preserve-3d;
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateZ(0);
+    transition:
+        transform      var(--t) var(--ease-silk),
+        border-color   var(--t) var(--ease-silk),
+        background     var(--t) var(--ease-silk),
+        box-shadow     var(--t) var(--ease-silk);
+}
+
+.registrations-list li::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        260px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 142, 255, 0.12),
+        transparent 55%
+    );
+    opacity: 0;
+    transition: opacity var(--t) var(--ease-silk);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.registrations-list li:hover {
+    border-color: var(--border-2);
+    background: var(--bg-3);
+    transform: perspective(var(--persp))
+               rotateX(var(--rx, 0deg))
+               rotateY(var(--ry, 0deg))
+               translateX(6px)
+               translateY(-3px)
+               translateZ(15px)
+               scale(1.015);
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        0 0 30px rgba(74, 142, 255, 0.1);
+}
+
+.registrations-list li:hover::before { opacity: 1; }
+
+/* ============================================================
+   ПОДВАЛ
+   ============================================================ */
+footer {
+    border-top: 1px solid var(--border);
+    color: var(--text-2);
+    text-align: center;
+    padding: 2.4rem 1.5rem;
+    margin-top: 3.5rem;
+    font-size: 0.88rem;
+    animation: text-in var(--t) var(--ease-silk) 0.7s both;
+}
+
+footer p {
+    line-height: 1.75;
+}
+
+footer small {
+    color: var(--text-3);
+    font-size: 0.8rem;
+}
+
+/* ============================================================
+   ССЫЛКИ
+   ============================================================ */
+a {
+    color: var(--blue);
+    transition: color var(--t) var(--ease-silk);
+}
+
+a:hover {
+    color: var(--blue-hi);
+}
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(8px);
+    transition:
+        opacity   var(--t) var(--ease-silk),
+        transform var(--t) var(--ease-silk),
+        filter    var(--t) var(--ease-silk);
+}
+
+.reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+}
+
+/* ============================================================
+   МЕДИА
+   ============================================================ */
+@media (max-width: 768px) {
+    header          { padding: 0.9rem 1rem; }
+    main            { padding: 2rem 1rem; }
+    .hero           { padding: 3rem 1.4rem; }
+    .events-grid    { grid-template-columns: repeat(2, 1fr); }
+    .btn            { padding: 0.85rem 1.5rem; font-size: 0.93rem; }
+    .btn-primary    { padding: 0.95rem 1.7rem; font-size: 0.96rem; }
+}
+
+@media (max-width: 480px) {
+    .events-grid    { grid-template-columns: 1fr; }
+    nav             { flex-wrap: wrap; gap: 0.2rem; }
+    .nav-link       { padding: 0.55rem 0.85rem; font-size: 0.88rem; }
+    .form-container { padding: 1.7rem; }
+    main            { padding: 1.5rem 1rem; }
+    .filters .btn   { flex: 1; }
+    .notifications  { left: 1rem; right: 1rem; max-width: none; }
+}
+
+/* ============================================================
+   УВАЖЕНИЕ К НАСТРОЙКАМ ПОЛЬЗОВАТЕЛЯ
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+        transform: none !important;
+        filter: none !important;
+    }
+}
